@@ -12,6 +12,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.97
 	github.com/segmentio/kafka-go v0.4.49
 	github.com/spf13/viper v1.21.0
+	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/otel v1.38.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.38.0
 	go.opentelemetry.io/otel/sdk v1.38.0
@@ -31,6 +32,7 @@ require (
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
@@ -72,6 +74,7 @@ require (
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/pjbgf/sha1cd v0.3.2 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/quic-go/quic-go v0.54.0 // indirect
 	github.com/rs/xid v1.6.0 // indirect
