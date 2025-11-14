@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+package repodoc;
+
+import "google/protobuf/empty.proto";
+
+message Repo {
+  string id = 1;
+  string name = 2;
+  string url = 3;
+  string status = 4;
+}
+
+message File {
+  string id = 1;
+  string path = 2;
+  repeated string imports = 3;
+}
+
+message Module {
+  string name = 1;
+  repeated File files = 2;
+}
+
+message Edge {
+  string from = 1;
+  string to = 2;
+  string type = 3;
+}
+
+message Commit {
+  string id = 1;
+  string author = 2;
+  string message = 3;
+}
+
+message UploadRequest {
+  string url = 1;
+}
+
+message UploadResponse {
+  string repo_id = 1;
+}
+
+message AnalyzeRequest {
+  string repo_id = 1;
+  string url = 2;
+}
+
+message AnalyzeResponse {
+  string status = 1;
+}
+
+message GetStatusRequest {
+  string repo_id = 1;
+}
+
+message StatusResponse {
+  string status = 1;
+}
+
+message GetGraphRequest {
+  string repo_id = 1;
+}
+
+message GraphResponse {
+  repeated Edge edges = 1;
+  repeated File files = 2;
+}
+
+message GetDocsRequest {
+  string repo_id = 1;
+}
+
+message DocPart {
+  string name = 1;
+  string content = 2;
+}
+
+message DocsResponse {
+  repeated DocPart docs = 1;
+}
+
+message DocRequest {
+  string repo_id = 1;
+  repeated DocPart parts = 2;
+}
+
+message DocResponse {
+  repeated DocPart docs = 1;
+}
+
+service RepoManager {
+  rpc UploadRepo(UploadRequest) returns (UploadResponse);
+  rpc AnalyzeRepo(AnalyzeRequest) returns (AnalyzeResponse);
+  rpc GetStatus(GetStatusRequest) returns (StatusResponse);
+  rpc GetGraph(GetGraphRequest) returns (GraphResponse);
+  rpc ListDocs(GetDocsRequest) returns (DocsResponse);
+}
+
+service DocService {
+  rpc GenerateDoc(DocRequest) returns (DocResponse);
+}

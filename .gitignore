@@ -1,0 +1,21 @@
+# Go
+/bin/
+/pkg/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Editor
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+
+# Docker
+docker-compose.override.yml
+.env

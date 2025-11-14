@@ -1,0 +1,25 @@
+stages:
+  - lint
+  - test
+  - build
+
+variables:
+  GO111MODULE: "on"
+  CGO_ENABLED: "0"
+
+lint:
+  stage: lint
+  script:
+    - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+    - $GOPATH/bin/golangci-lint run ./...
+
+unit_tests:
+  stage: test
+  script:
+    - go test ./...
+
+deploy:
+  stage: build
+  script:
+    - docker build -t repodoc/api:latest .
+    - docker build -t repodoc/worker:latest ./cmd/worker

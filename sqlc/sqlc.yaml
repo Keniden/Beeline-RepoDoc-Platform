@@ -1,0 +1,4 @@
+schema: "migrations/*.sql"
+queries: "sqlc/queries.sql"
+generated: "internal/storage/postgres/sqlc"
+package: "postgresqueries"

@@ -1,0 +1,88 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: repodoc
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: repodoc
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8
+    restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: yes
+
+  kafka:
+    image: bitnami/kafka:latest
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:RELEASE.2025-07-25T00-11-38Z
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: miniopass
+    ports:
+      - "9000:9000"
+    volumes:
+      - minio-data:/data
+
+  prometheus:
+    image: prom/prometheus:v2.53.1
+    volumes:
+      - ./scripts/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:10.0.3
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+  api:
+    build: .
+    depends_on:
+      - postgres
+      - clickhouse
+      - kafka
+      - redis
+      - minio
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    entrypoint: ["/bin/api"]
+
+  worker:
+    build: .
+    depends_on:
+      - kafka
+      - postgres
+    entrypoint: ["/bin/worker"]
+volumes:
+  postgres-data:
+  minio-data:
