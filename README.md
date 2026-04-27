@@ -12,6 +12,12 @@
 - **Обсервабилити**: OpenTelemetry-трейсы, метрики Prometheus, дашборды Grafana через compose.
 - **Инфраструктура**: Docker + docker-compose поднимают API, worker, Postgres, ClickHouse, Kafka/Zookeeper, Redis, MinIO, Prometheus, Grafana.
 
+## Переменные окружения
+
+1. Скопируйте `.env.example` в `.env`: `cp .env.example .env`.
+2. При необходимости измените порты и учётные данные сервисов в `.env`.
+3. `docker-compose.yaml` автоматически подхватит значения из `.env`.
+
 ## Быстрый старт
 
 1. Скопируйте `configs/config.yaml` и переопределите секреты через переменные окружения.
@@ -40,6 +46,12 @@
 
 - Определения в `proto/repodoc.proto` и сгенерированная `proto/repodoc.pb.go`.
 - Сервисы: `RepoManager` (upload/analyze/status/graph/docs) и `DocService` (LLM-генерация документации).
+
+## OpenAPI (Swagger)
+
+- REST-спека: `docs/openapi.yaml`.
+- Swagger UI поднимается вместе с `docker compose up -d` как сервис `swagger-ui`.
+- Откройте: `http://localhost:${SWAGGER_PORT}` (по умолчанию `http://localhost:8081`).
 
 ## Графы и документация
 

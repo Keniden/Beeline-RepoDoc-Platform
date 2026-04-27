@@ -1,12 +1,12 @@
 # Go
 /bin/
-/pkg/
 *.exe
 *.dll
 *.so
 *.dylib
 *.test
 *.out
+*.cache/
 
 # Editor
 .idea/
@@ -19,3 +19,4 @@
 # Docker
 docker-compose.override.yml
 .env
+.env.example

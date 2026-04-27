@@ -1,5 +1,4 @@
-# syntax=docker/dockerfile:1.5
-FROM golang:1.22-alpine AS builder
+FROM golang:1.26-alpine AS builder
 WORKDIR /workspace
 COPY go.mod go.sum ./
 RUN go mod download
@@ -9,3 +8,5 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o /workspace/bin/worker ./cmd/w
 
 FROM gcr.io/distroless/static:nonroot
 COPY --from=builder /workspace/bin /bin
+COPY --from=builder /workspace/configs /configs
+COPY --from=builder /workspace/migrations /migrations

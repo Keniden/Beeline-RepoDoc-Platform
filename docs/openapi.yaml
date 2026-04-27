@@ -1,0 +1,328 @@
+openapi: 3.0.3
+info:
+  title: Beeline RepoDoc REST API
+  version: "1.0.0"
+  description: API for repository registration, analysis, graph/docs retrieval, and AST view.
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: repos
+paths:
+  /repos/upload:
+    post:
+      tags: [repos]
+      summary: Register repository URL
+      operationId: uploadRepo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepoUrlRequest"
+            examples:
+              github:
+                value:
+                  url: "https://github.com/golang/example.git"
+      responses:
+        "202":
+          description: Repository accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /repos/{id}/analyze:
+    post:
+      tags: [repos]
+      summary: Trigger repository analysis
+      operationId: analyzeRepo
+      parameters:
+        - $ref: "#/components/parameters/RepoId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepoUrlRequest"
+            examples:
+              github:
+                value:
+                  url: "https://github.com/golang/example.git"
+      responses:
+        "200":
+          description: Analysis started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyzeResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /repos/{id}/status:
+    get:
+      tags: [repos]
+      summary: Get analysis status
+      operationId: getStatus
+      parameters:
+        - $ref: "#/components/parameters/RepoId"
+      responses:
+        "200":
+          description: Current status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+
+  /repos/{id}/graph:
+    get:
+      tags: [repos]
+      summary: Get computed graph
+      operationId: getGraph
+      parameters:
+        - $ref: "#/components/parameters/RepoId"
+      responses:
+        "200":
+          description: Graph data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GraphResponse"
+        "404":
+          description: Graph not available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /repos/{id}/docs:
+    get:
+      tags: [repos]
+      summary: List generated docs
+      operationId: listDocs
+      parameters:
+        - $ref: "#/components/parameters/RepoId"
+      responses:
+        "200":
+          description: Document names
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocsListResponse"
+        "404":
+          description: Docs directory not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocsListResponse"
+
+  /repos/{id}/docs/{name}:
+    get:
+      tags: [repos]
+      summary: Get a generated markdown document
+      operationId: getDoc
+      parameters:
+        - $ref: "#/components/parameters/RepoId"
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Document base name without ".md"
+      responses:
+        "200":
+          description: Markdown document
+          content:
+            text/markdown:
+              schema:
+                type: string
+        "404":
+          description: File not found
+
+  /repos/{id}/ast/{filePath}:
+    get:
+      tags: [repos]
+      summary: Build AST report for a file or directory in cloned repo
+      description: |
+        In implementation this route is `/repos/:id/ast/*file`.
+        If `filePath` contains slashes, encode them (for example `pkg%2Fmain.go`).
+      operationId: getAst
+      parameters:
+        - $ref: "#/components/parameters/RepoId"
+        - name: filePath
+          in: path
+          required: true
+          allowReserved: true
+          schema:
+            type: string
+          description: Relative path under `/tmp/{repo_id}`
+      responses:
+        "200":
+          description: AST report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AstReport"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  parameters:
+    RepoId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Repository identifier returned by `/repos/upload`
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    RepoUrlRequest:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
+
+    UploadResponse:
+      type: object
+      required: [repo_id]
+      properties:
+        repo_id:
+          type: string
+
+    AnalyzeResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [analysis_started]
+
+    StatusResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [processing, ready]
+
+    GraphNode:
+      type: object
+      properties:
+        ID:
+          type: string
+        Type:
+          type: string
+        Label:
+          type: string
+
+    GraphEdge:
+      type: object
+      properties:
+        From:
+          type: string
+        To:
+          type: string
+        Type:
+          type: string
+
+    GraphResponse:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/GraphNode"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/GraphEdge"
+        adj:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    DocsListResponse:
+      type: object
+      properties:
+        docs:
+          type: array
+          items:
+            type: string
+
+    AstReport:
+      type: object
+      properties:
+        Files:
+          type: array
+          items:
+            type: string
+        Functions:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        Structs:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        Interfaces:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        Imports:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        Calls:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        Cohesion:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+        Coupling:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string

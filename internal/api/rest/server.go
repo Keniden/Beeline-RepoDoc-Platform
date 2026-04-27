@@ -22,10 +22,11 @@ type Server struct {
 }
 
 func NewServer(ingestion *ingestion.Service, astAnalyzer *ast.Analyzer, graphStore *sync.Map) *Server {
-    router := gin.New()
-    router.Use(gin.Recovery())
-    server := &Server{router: router, ingestion: ingestion, astAnalyzer: astAnalyzer, graphCache: graphStore}
-    router.POST("/repos/upload", server.uploadRepo)
+	router := gin.New()
+	router.Use(gin.Recovery())
+	router.Use(corsMiddleware())
+	server := &Server{router: router, ingestion: ingestion, astAnalyzer: astAnalyzer, graphCache: graphStore}
+	router.POST("/repos/upload", server.uploadRepo)
     router.POST("/repos/:id/analyze", server.triggerAnalysis)
     router.GET("/repos/:id/status", server.status)
     router.GET("/repos/:id/graph", server.graph)
@@ -124,5 +125,20 @@ func (s *Server) astView(c *gin.Context) {
 }
 
 func (s *Server) Run(ctx context.Context, addr string) error {
-    return s.router.Run(addr)
+	return s.router.Run(addr)
+}
+
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
+		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
+
+		if c.Request.Method == http.MethodOptions {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+		c.Next()
+	}
 }
